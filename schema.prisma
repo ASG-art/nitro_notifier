@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// إعدادات البوت
+model BotSettings {
+  id                    String   @id @default(cuid())
+  discordBotToken       String?  // توكن البوت
+  discordClientId       String?  // معرف التطبيق
+  discordGuildId        String?  // معرف السيرفر
+  notificationChannelId String?  // قناة الإشعارات
+  nitroRoleId           String?  // معرف رتبة النيترو
+  adminRoleId           String?  // معرف رتبة الأدمن
+  notifyBeforeDays      Int      @default(7) // الأيام قبل الانتهاء للإشعار
+  notifyBeforeHours     Int      @default(24) // الساعات قبل الانتهاء للإشعار
+  isBotActive           Boolean  @default(false) // حالة البوت
+  lastCheckAt           DateTime? // آخر فحص
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// العملاء
+model Customer {
+  id              String   @id @default(cuid())
+  discordId       String   @unique // معرف ديسكورد
+  discordUsername String?  // اسم المستخدم
+  discordAvatar   String?  // صورة البروفايل
+  nitroType       String   @default("CLASSIC") // نوع النيترو (CLASSIC, BASIC, PREMIUM)
+  startDate       DateTime // تاريخ البداية
+  endDate         DateTime // تاريخ الانتهاء
+  durationMonths  Int      @default(1) // المدة بالأشهر
+  price           Float?   // السعر
+  notes           String?  // ملاحظات
+  status          String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  notifiedAt      DateTime? // آخر إشعار مرسل
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  notifications   NotificationLog[]
+}
+
+// سجل الإشعارات
+model NotificationLog {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  type        String   // EXPIRING_SOON, EXPIRED, RENEWED
+  message     String   // نص الرسالة
+  sentAt      DateTime @default(now())
+  success     Boolean  @default(true)
+  error       String?
+}
+
+// سجل العمليات
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   // CREATE, UPDATE, DELETE, NOTIFY
+  entityType  String   // CUSTOMER, SETTINGS
+  entityId    String?
+  description String
+  userId      String?  // من قام بالعملية
+  createdAt   DateTime @default(now())
+}
+
+// إحصائيات يومية
+model DailyStats {
+  id           String   @id @default(cuid())
+  date         DateTime @unique
+  activeCount  Int      @default(0)
+  expiringSoon Int      @default(0)
+  expiredCount Int      @default(0)
+  newCount     Int      @default(0)
+  renewedCount Int      @default(0)
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,93 @@
+// This is your Prisma schema file for PostgreSQL (Vercel)
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+// إعدادات البوت
+model BotSettings {
+  id                    String   @id @default(cuid())
+  discordBotToken       String?
+  discordClientId       String?
+  discordGuildId        String?
+  notificationChannelId String?
+  nitroRoleId           String?
+  adminRoleId           String?
+  notifyBeforeDays      Int      @default(7)
+  notifyBeforeHours     Int      @default(24)
+  isBotActive           Boolean  @default(false)
+  lastCheckAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// العملاء
+model Customer {
+  id              String             @id @default(cuid())
+  discordId       String             @unique
+  discordUsername String?
+  discordAvatar   String?
+  nitroType       String             @default("CLASSIC")
+  startDate       DateTime
+  endDate         DateTime
+  durationMonths  Int                @default(1)
+  price           Float?
+  notes           String?
+  status          String             @default("ACTIVE")
+  notifiedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  notifications   NotificationLog[]
+  
+  @@index([status])
+  @@index([endDate])
+  @@index([discordId])
+}
+
+// سجل الإشعارات
+model NotificationLog {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        String
+  message     String
+  sentAt      DateTime @default(now())
+  success     Boolean  @default(true)
+  error       String?
+  
+  @@index([customerId])
+  @@index([sentAt])
+}
+
+// سجل العمليات
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String?
+  description String
+  userId      String?
+  createdAt   DateTime @default(now())
+  
+  @@index([createdAt])
+}
+
+// إحصائيات يومية
+model DailyStats {
+  id           String   @id @default(cuid())
+  date         DateTime @unique
+  activeCount  Int      @default(0)
+  expiringSoon Int      @default(0)
+  expiredCount Int      @default(0)
+  newCount     Int      @default(0)
+  renewedCount Int      @default(0)
+  createdAt    DateTime @default(now())
+}
