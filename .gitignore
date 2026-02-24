@@ -1,0 +1,27 @@
+# ملفات يجب تجاهلها
+node_modules/
+.next/
+out/
+build/
+dist/
+*.log
+.env
+.env.local
+db/custom.db
+
+# ملفات النظام
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# مجلد skills
+skills/
+
+# ملفات مؤقتة
+*.tmp
+*.temp
