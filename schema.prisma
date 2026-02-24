@@ -1,72 +1,83 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file for PostgreSQL (Vercel)
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // إعدادات البوت
 model BotSettings {
   id                    String   @id @default(cuid())
-  discordBotToken       String?  // توكن البوت
-  discordClientId       String?  // معرف التطبيق
-  discordGuildId        String?  // معرف السيرفر
-  notificationChannelId String?  // قناة الإشعارات
-  nitroRoleId           String?  // معرف رتبة النيترو
-  adminRoleId           String?  // معرف رتبة الأدمن
-  notifyBeforeDays      Int      @default(7) // الأيام قبل الانتهاء للإشعار
-  notifyBeforeHours     Int      @default(24) // الساعات قبل الانتهاء للإشعار
-  isBotActive           Boolean  @default(false) // حالة البوت
-  lastCheckAt           DateTime? // آخر فحص
+  discordBotToken       String?
+  discordClientId       String?
+  discordGuildId        String?
+  notificationChannelId String?
+  nitroRoleId           String?
+  adminRoleId           String?
+  notifyBeforeDays      Int      @default(7)
+  notifyBeforeHours     Int      @default(24)
+  isBotActive           Boolean  @default(false)
+  lastCheckAt           DateTime?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
 
 // العملاء
 model Customer {
-  id              String   @id @default(cuid())
-  discordId       String   @unique // معرف ديسكورد
-  discordUsername String?  // اسم المستخدم
-  discordAvatar   String?  // صورة البروفايل
-  nitroType       String   @default("CLASSIC") // نوع النيترو (CLASSIC, BASIC, PREMIUM)
-  startDate       DateTime // تاريخ البداية
-  endDate         DateTime // تاريخ الانتهاء
-  durationMonths  Int      @default(1) // المدة بالأشهر
-  price           Float?   // السعر
-  notes           String?  // ملاحظات
-  status          String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
-  notifiedAt      DateTime? // آخر إشعار مرسل
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id              String             @id @default(cuid())
+  discordId       String             @unique
+  discordUsername String?
+  discordAvatar   String?
+  nitroType       String             @default("CLASSIC")
+  startDate       DateTime
+  endDate         DateTime
+  durationMonths  Int                @default(1)
+  price           Float?
+  notes           String?
+  status          String             @default("ACTIVE")
+  notifiedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   notifications   NotificationLog[]
+  
+  @@index([status])
+  @@index([endDate])
+  @@index([discordId])
 }
 
 // سجل الإشعارات
 model NotificationLog {
   id          String   @id @default(cuid())
   customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id])
-  type        String   // EXPIRING_SOON, EXPIRED, RENEWED
-  message     String   // نص الرسالة
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        String
+  message     String
   sentAt      DateTime @default(now())
   success     Boolean  @default(true)
   error       String?
+  
+  @@index([customerId])
+  @@index([sentAt])
 }
 
 // سجل العمليات
 model ActivityLog {
   id          String   @id @default(cuid())
-  action      String   // CREATE, UPDATE, DELETE, NOTIFY
-  entityType  String   // CUSTOMER, SETTINGS
+  action      String
+  entityType  String
   entityId    String?
   description String
-  userId      String?  // من قام بالعملية
+  userId      String?
   createdAt   DateTime @default(now())
+  
+  @@index([createdAt])
 }
 
 // إحصائيات يومية
