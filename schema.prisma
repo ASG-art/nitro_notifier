@@ -1,18 +1,14 @@
 // This is your Prisma schema file for PostgreSQL (Vercel)
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// إعدادات البوت
 model BotSettings {
   id                    String   @id @default(cuid())
   discordBotToken       String?
@@ -29,7 +25,6 @@ model BotSettings {
   updatedAt             DateTime @updatedAt
 }
 
-// العملاء
 model Customer {
   id              String             @id @default(cuid())
   discordId       String             @unique
@@ -46,13 +41,11 @@ model Customer {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   notifications   NotificationLog[]
-  
+
   @@index([status])
   @@index([endDate])
-  @@index([discordId])
 }
 
-// سجل الإشعارات
 model NotificationLog {
   id          String   @id @default(cuid())
   customerId  String
@@ -62,12 +55,10 @@ model NotificationLog {
   sentAt      DateTime @default(now())
   success     Boolean  @default(true)
   error       String?
-  
+
   @@index([customerId])
-  @@index([sentAt])
 }
 
-// سجل العمليات
 model ActivityLog {
   id          String   @id @default(cuid())
   action      String
@@ -76,11 +67,10 @@ model ActivityLog {
   description String
   userId      String?
   createdAt   DateTime @default(now())
-  
+
   @@index([createdAt])
 }
 
-// إحصائيات يومية
 model DailyStats {
   id           String   @id @default(cuid())
   date         DateTime @unique
